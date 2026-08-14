@@ -113,7 +113,7 @@ def init_hive():
             json.dump(initial_state, f, indent=2)
 
 def generate_task_dag(task_description):
-    """Generates an execution DAG for a task with mandatory task-based model selection."""
+    """Generates an execution DAG for a task with mandatory task-based model selection, skill injection, and Manus-level quality standards."""
     if hasattr(sys.stdout, "reconfigure"):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
@@ -122,12 +122,15 @@ def generate_task_dag(task_description):
     init_hive()
     dag = {
         "task": task_description,
+        "quality_standard": "Manus-Level Excellence (Zero Bare Minimum)",
         "nodes": [
             {
                 "id": "node-1",
                 "title": "Architecture & Schema Design",
                 "engine": "antigravity",
                 "selected_model": CLAUDE_MODELS["architectural"],
+                "injected_skills": ["backend-architect", "api-design-principles", "database-architect"],
+                "quality_reflection": True,
                 "dependencies": []
             },
             {
@@ -135,6 +138,8 @@ def generate_task_dag(task_description):
                 "title": "Component & Feature Implementation",
                 "engine": "claude",
                 "selected_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                "injected_skills": ["frontend-developer", "ui-ux-designer", "tailwind-design-system"],
+                "quality_reflection": True,
                 "dependencies": ["node-1"]
             },
             {
@@ -142,6 +147,8 @@ def generate_task_dag(task_description):
                 "title": "Shell Scripts & Command Validation",
                 "engine": "copilot",
                 "selected_model": CLAUDE_MODELS["fast_scripting"],
+                "injected_skills": ["bash-pro", "devops-troubleshooter"],
+                "quality_reflection": True,
                 "dependencies": ["node-1"]
             }
         ]

@@ -15,7 +15,9 @@
   - **Antigravity Cloud CLI**: Complex architectural design, refactoring, and multi-file logic using task-matched Claude models.
   - **Claude Code CLI**: Fast component generation using 10+ free OpenCode models listed in `D:\Ashwin\Claude Code models.txt`.
   - **GitHub Copilot CLI** (`copilot` / `gh copilot` v1.0.60+): Instant shell script generation, command line tasks, and synthesis with configurable Claude models.
-- **💻 Unified Terminal Subversion**: Runs CLI workers inside isolated terminal subversions for process stability and unified state tracking.
+- **💻 Multi-Terminal Swarm & Skill Bootstrapping**: Spawns multiple concurrent terminal instances across Antigravity Cloud, Claude Code, and Copilot CLIs, dynamically bootstrapping every worker session with task-relevant domain skills.
+- **🌟 Manus-Level Quality Standard**: Strictly enforces state-of-the-art production excellence. Eliminates bare-minimum MVPs or basic demo placeholders in favor of rich UI/UX, micro-interactions, complete responsive layouts, and robust backend architecture.
+- **🔍 Continuous Self-Reflection Loop**: Workers execute mandatory quality reflection passes to evaluate and elevate code quality before task completion.
 - **🎯 Task-Based Model Selection First Protocol**: Mandatory protocol upon logging into any terminal session and launching CLIs to immediately select the optimal model (e.g. `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`) based on task requirements BEFORE running prompts.
 - **🔄 OpenCode Free-Tier Load Balancer**: Dynamically load-balances across free models specified in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`), with automatic rate-limit failover.
 - **💉 Automated Skill Context Injection**: Injects domain skills and task context directly into inner worker terminal sessions.

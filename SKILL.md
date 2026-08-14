@@ -29,8 +29,16 @@ description: Standalone multi-agent swarm orchestration skill featuring DAG task
 ### Rule 2: Zero Assumptions & Interactive Clarification
 - **Make no assumptions.** If any requirement, architectural detail, CLI flag, path, or API contract is ambiguous, ask the user directly to clarify before drafting or executing the plan.
 
-### Rule 3: Radical Simplicity Over Over-Engineering
-- **Keep solutions minimal and robust.** Avoid unrequested abstractions, extra libraries, or premature future-proofing unless explicitly requested by the user.
+### Rule 3: Zero Bare Minimum & Manus-Level Quality Standard
+- **No Bare Minimum Code or MVPs**: Never create trivial placeholder code, basic demo scripts, unstyled HTML/CSS, or simple skeleton apps. Every solution must be production-ready, fully fleshed out, and comprehensive.
+- **Manus-Level Engineering & UI/UX Depth**:
+  - When building web applications, interfaces, or systems, deliver **Manus-level excellence**—rich typography, modern color palettes, dynamic fluid responsiveness, engaging micro-animations, robust state management, thorough input validation, and complete edge-case error handling.
+  - Every UI element must feature active hover states, seamless transition effects, clear visual hierarchy, and accessible structure.
+- **Continuous Quality Reflection Loop**:
+  - Before writing code or declaring any task DAG node complete, the worker instance MUST execute a **Self-Reflection & Enhancement Pass**:
+    - *Is this output bare minimum or basic?*
+    - *How can this component, UI, or backend architecture be elevated with richer interactions, deeper logic, or superior design?*
+  - Refine and polish the code until it meets elite production standards.
 
 ### Rule 4: Contained Edits & Strict Scope Limits
 - **Strict Scope Boundary**: Do not modify adjacent or unrelated files. Keep code edits strictly localized to the target files explicitly required for the task.
@@ -92,11 +100,20 @@ Map DAG task nodes to the optimal CLI worker engine based on task characteristic
   10. `xiaomi/mimo-v2-flash:free`
 - If an API rate limit or error occurs during execution, automatically rotate to the next free model in the sequence.
 
-### Rule 10: Automatic Skill Context Bootstrapping
-- Every worker instance (Antigravity, Claude Code, Copilot) launched by the swarm orchestrator is automatically bootstrapped with:
-  - `Master_Slave_Skill` behavioral rules.
-  - Task DAG segment & shared codebase context.
-  - Relevant domain skills discovered via `find_skills.py`.
+### Rule 10: Multi-Terminal Fleet Execution & Mandatory Dynamic Skill Context Injection
+- **Concurrent Multi-Terminal Worker Swarm**:
+  - The orchestrator can spawn and execute across **multiple parallel terminal instances** of Antigravity Cloud CLI, Claude Code CLI, and GitHub Copilot CLI simultaneously.
+- **Mandatory Dynamic Skill Bootstrapping**:
+  - **NEVER RUN BARE WORKERS**: Every single worker terminal instance launched in the fleet MUST be dynamically bootstrapped with relevant domain skills before starting code generation.
+  - Skill injection pipeline:
+    1. Scan task node domain requirements (e.g., `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `backend-architect`, `api-design-principles`, `security-auditor`).
+    2. Inject `SKILL.md` instructions and referenced templates directly into the worker's initial prompt context.
+    3. Inject `Master_Slave_Skill` core operational rules and Task DAG node contracts.
+- **Continuous Skill-Driven Reflection & Quality Elevation**:
+  - Every worker in every terminal session must continuously evaluate its work against injected skill standards:
+    - *How can this code/UI be improved using the injected skill best practices?*
+    - *Are all interaction micro-animations, typography rules, and error states fully realized?*
+  - Re-evaluate and refine until the code achieves state-of-the-art **Manus-level excellence** with zero bare minimum outputs.
 
 ### Rule 11: Shared Memory Bus (`.hive/state.json`) & Conflict Reconciliation
 - Workers output task diffs, generated files, and receipts to `.hive/state.json`.
