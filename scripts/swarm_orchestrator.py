@@ -122,7 +122,7 @@ def generate_task_dag(task_description):
     init_hive()
     dag = {
         "task": task_description,
-        "quality_standard": "Manus-Level Excellence (Zero Bare Minimum)",
+        "quality_standard": "Elite Production Craft (Zero Bare Minimum)",
         "nodes": [
             {
                 "id": "node-1",

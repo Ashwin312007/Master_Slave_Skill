@@ -29,16 +29,16 @@ description: Standalone multi-agent swarm orchestration skill featuring DAG task
 ### Rule 2: Zero Assumptions & Interactive Clarification
 - **Make no assumptions.** If any requirement, architectural detail, CLI flag, path, or API contract is ambiguous, ask the user directly to clarify before drafting or executing the plan.
 
-### Rule 3: Zero Bare Minimum & Manus-Level Quality Standard
-- **No Bare Minimum Code or MVPs**: Never create trivial placeholder code, basic demo scripts, unstyled HTML/CSS, or simple skeleton apps. Every solution must be production-ready, fully fleshed out, and comprehensive.
-- **Manus-Level Engineering & UI/UX Depth**:
-  - When building web applications, interfaces, or systems, deliver **Manus-level excellence**—rich typography, modern color palettes, dynamic fluid responsiveness, engaging micro-animations, robust state management, thorough input validation, and complete edge-case error handling.
-  - Every UI element must feature active hover states, seamless transition effects, clear visual hierarchy, and accessible structure.
-- **Continuous Quality Reflection Loop**:
-  - Before writing code or declaring any task DAG node complete, the worker instance MUST execute a **Self-Reflection & Enhancement Pass**:
-    - *Is this output bare minimum or basic?*
-    - *How can this component, UI, or backend architecture be elevated with richer interactions, deeper logic, or superior design?*
-  - Refine and polish the code until it meets elite production standards.
+### Rule 3: Zero Bare-Minimum Output & Elite Production Craft
+- **No Half-Baked MVPs or Placeholder Code**: Never deliver minimal viable prototypes, unstyled HTML/CSS, shallow script skeletons, or basic placeholder implementations. Every output—whether a full-stack web application, a backend microservice, or an automation script—must be fully realized, resilient, and production-ready.
+- **Deep Design & Engineering Rigor**:
+  - **User Interfaces & Web Apps**: Deliver premium visual aesthetics, curated typography, fluid responsiveness, interactive micro-animations, comprehensive state management, and edge-case error boundaries.
+  - **Systems & Backend Architectures**: Implement robust error handling, structured logging, strict type validation, and clean, scalable modular design.
+- **Mandatory Self-Reflection & Enhancement Pass**:
+  - Before writing code or marking a task DAG node as complete, every worker instance MUST execute a mandatory self-review:
+    - *Is this solution bare minimum or merely functional?*
+    - *How can the interaction design, performance, reliability, or code architecture be further elevated?*
+  - Iterate and refine the implementation until it achieves uncompromising software craft.
 
 ### Rule 4: Contained Edits & Strict Scope Limits
 - **Strict Scope Boundary**: Do not modify adjacent or unrelated files. Keep code edits strictly localized to the target files explicitly required for the task.
@@ -110,10 +110,10 @@ Map DAG task nodes to the optimal CLI worker engine based on task characteristic
     2. Inject `SKILL.md` instructions and referenced templates directly into the worker's initial prompt context.
     3. Inject `Master_Slave_Skill` core operational rules and Task DAG node contracts.
 - **Continuous Skill-Driven Reflection & Quality Elevation**:
-  - Every worker in every terminal session must continuously evaluate its work against injected skill standards:
-    - *How can this code/UI be improved using the injected skill best practices?*
-    - *Are all interaction micro-animations, typography rules, and error states fully realized?*
-  - Re-evaluate and refine until the code achieves state-of-the-art **Manus-level excellence** with zero bare minimum outputs.
+  - Every worker in every terminal session must continuously evaluate its work against injected skill domain standards:
+    - *How can this code, architecture, or UI be improved using the injected skill best practices?*
+    - *Are all micro-interactions, responsive states, type definitions, and error boundaries fully realized?*
+  - Re-evaluate and refine until the code achieves elite production quality with zero bare-minimum compromises.
 
 ### Rule 11: Shared Memory Bus (`.hive/state.json`) & Conflict Reconciliation
 - Workers output task diffs, generated files, and receipts to `.hive/state.json`.

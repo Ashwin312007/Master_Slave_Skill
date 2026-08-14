@@ -16,7 +16,7 @@
   - **Claude Code CLI**: Fast component generation using 10+ free OpenCode models listed in `D:\Ashwin\Claude Code models.txt`.
   - **GitHub Copilot CLI** (`copilot` / `gh copilot` v1.0.60+): Instant shell script generation, command line tasks, and synthesis with configurable Claude models.
 - **💻 Multi-Terminal Swarm & Skill Bootstrapping**: Spawns multiple concurrent terminal instances across Antigravity Cloud, Claude Code, and Copilot CLIs, dynamically bootstrapping every worker session with task-relevant domain skills.
-- **🌟 Manus-Level Quality Standard**: Strictly enforces state-of-the-art production excellence. Eliminates bare-minimum MVPs or basic demo placeholders in favor of rich UI/UX, micro-interactions, complete responsive layouts, and robust backend architecture.
+- **🌟 Elite Production Quality Standard**: Eliminates bare-minimum MVPs or basic demo placeholders in favor of rich UI/UX, responsive micro-interactions, robust state management, and resilient backend architecture.
 - **🔍 Continuous Self-Reflection Loop**: Workers execute mandatory quality reflection passes to evaluate and elevate code quality before task completion.
 - **🎯 Task-Based Model Selection First Protocol**: Mandatory protocol upon logging into any terminal session and launching CLIs to immediately select the optimal model (e.g. `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`) based on task requirements BEFORE running prompts.
 - **🔄 OpenCode Free-Tier Load Balancer**: Dynamically load-balances across free models specified in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`), with automatic rate-limit failover.
