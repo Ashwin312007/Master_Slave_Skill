@@ -112,8 +112,29 @@ def init_hive():
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(initial_state, f, indent=2)
 
+def commit_and_push_to_main(commit_message="feat(swarm): automated task commit to main"):
+    """Automatically stages all modified/untracked files, commits to main branch, and pushes to remote."""
+    print("\n[+] Autonomous Git Release Workflow: Staging & Committing to main...")
+    try:
+        subprocess.run(["git", "add", "-A"], check=True)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        if not status.stdout.strip():
+            print("[+] Working tree clean. Nothing to commit.")
+            return True
+        subprocess.run(["git", "commit", "-m", commit_message], check=True)
+        print(f"[OK] Committed changes to main: '{commit_message}'")
+        push_res = subprocess.run(["git", "push", "-u", "origin", "main"], capture_output=True, text=True)
+        if push_res.returncode == 0:
+            print("[OK] Pushed changes directly to main branch on origin.")
+        else:
+            print(f"[!] Push warning (remote may require setup or authorization): {push_res.stderr.strip()}")
+        return True
+    except Exception as e:
+        print(f"[!] Git commit/push error: {e}")
+        return False
+
 def generate_task_dag(task_description):
-    """Generates an execution DAG for a task with mandatory task-based model selection, skill injection, and Manus-level quality standards."""
+    """Generates an execution DAG for a task with mandatory task-based model selection, skill injection, inner CLI auto-approval, and auto-commit to main."""
     if hasattr(sys.stdout, "reconfigure"):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
@@ -123,6 +144,8 @@ def generate_task_dag(task_description):
     dag = {
         "task": task_description,
         "quality_standard": "Elite Production Craft (Zero Bare Minimum)",
+        "inner_cli_auto_approval": True,
+        "auto_commit_to_main": True,
         "nodes": [
             {
                 "id": "node-1",
@@ -131,6 +154,7 @@ def generate_task_dag(task_description):
                 "selected_model": CLAUDE_MODELS["architectural"],
                 "injected_skills": ["backend-architect", "api-design-principles", "database-architect"],
                 "quality_reflection": True,
+                "auto_approve_prompts": True,
                 "dependencies": []
             },
             {
@@ -140,6 +164,7 @@ def generate_task_dag(task_description):
                 "selected_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
                 "injected_skills": ["frontend-developer", "ui-ux-designer", "tailwind-design-system"],
                 "quality_reflection": True,
+                "auto_approve_prompts": True,
                 "dependencies": ["node-1"]
             },
             {
@@ -149,6 +174,7 @@ def generate_task_dag(task_description):
                 "selected_model": CLAUDE_MODELS["fast_scripting"],
                 "injected_skills": ["bash-pro", "devops-troubleshooter"],
                 "quality_reflection": True,
+                "auto_approve_prompts": True,
                 "dependencies": ["node-1"]
             }
         ]
@@ -166,6 +192,7 @@ def main():
     parser.add_argument("--check-environment", action="store_true", help="Check CLI tools and OpenCode models")
     parser.add_argument("--test-models", action="store_true", help="Test loading OpenCode free models")
     parser.add_argument("--test-dag", action="store_true", help="Test DAG task generation")
+    parser.add_argument("--commit-main", action="store_true", help="Commit all changes to main branch of git")
     parser.add_argument("--task", type=str, help="Task description to orchestrate")
     
     args = parser.parse_args()
@@ -177,6 +204,8 @@ def main():
         print(f"Loaded {len(models)} models:")
         for m in models:
             print(f" - {m}")
+    elif args.commit_main:
+        commit_and_push_to_main("feat(swarm): autonomous release commit to main")
     elif args.test_dag or args.task:
         task = args.task or "Build full-stack microservice with tests"
         generate_task_dag(task)

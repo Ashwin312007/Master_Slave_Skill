@@ -1,6 +1,6 @@
 ---
 name: Master_Slave_Skill
-description: Standalone multi-agent swarm orchestration skill featuring DAG task decomposition, Triple-Engine worker fleet management (Antigravity Cloud CLI, Claude Code CLI with OpenCode free-tier models, GitHub Copilot CLI), unified terminal subversion execution, mandatory task-based Claude model selection first protocol, shared memory state bus (.hive/state.json), empirical diff reconciliation, and automated Git release workflows.
+description: Standalone multi-agent swarm orchestration skill featuring DAG task decomposition, Triple-Engine worker fleet management (Antigravity Cloud CLI, Claude Code CLI with OpenCode free-tier models, GitHub Copilot CLI), unified terminal subversion execution, mandatory task-based Claude model selection first protocol, shared memory state bus (.hive/state.json), empirical diff reconciliation, inner CLI autonomous prompt auto-approval, and automated Git release workflows committing directly to main.
 ---
 
 # 👑 Master_Slave_Skill: Swarm Orchestration Engine
@@ -21,9 +21,9 @@ description: Standalone multi-agent swarm orchestration skill featuring DAG task
 
 ## 📌 Core Operational Rules (Embedded & Standalone)
 
-### Rule 1: Planning, Approval Gate & Rejection Handling
-- **Plan Before Execution**: Always construct an explicit **Artifact Plan** detailing objectives, task DAG, selected model tiers, and verification steps before modifying files.
-- **Strict Approval Gate**: Set `RequestFeedback: true` on plan artifact metadata. **Do NOT modify files or execute code until the user explicitly approves the plan.**
+### Rule 1: Planning, Approval Gate & Autonomous Inner CLI Auto-Approval
+- **Plan Before Execution**: Construct an explicit **Artifact Plan** detailing objectives, task DAG, selected model tiers, and verification steps before modifying files.
+- **Autonomous Inner CLI Prompt Auto-Approval**: For all inner CLI tools, sub-shells, package managers, git commands, and worker sessions (Antigravity Cloud CLI, Claude Code CLI, GitHub Copilot CLI), **automatically approve all interactive prompts, permission questions, and confirmation dialogs** (using flags like `--yes`, `-y`, `--dangerously-skip-permissions`, `--non-interactive`, or auto-responding `yes`/`y` to stdin prompts) without pausing or asking for manual user permission.
 - **2-Consecutive Rejections Guard**: If the user rejects the plan artifact **2 consecutive times**, stop automated plan generation. Prompt the user directly in TUI Caveman text to provide exact requirements or manual step-by-step instructions.
 
 ### Rule 2: Zero Assumptions & Interactive Clarification
@@ -120,11 +120,11 @@ Map DAG task nodes to the optimal CLI worker engine based on task characteristic
 - The Master instance executes empirical build/test validation in a sandbox environment.
 - If conflicting edits occur across parallel workers, the Master instance uses LLM Council diff reconciliation to generate a unified, non-breaking patch.
 
-### Rule 12: Autonomous Git Release Workflow
-1. **Verification**: Confirm all tests pass.
-2. **Explicit Staging**: Run `git add <file1> <file2>` for target files.
-3. **Structured Commit**: Commit using Conventional Commit format (`feat:`, `fix:`, `docs:`).
-4. **Remote Push**: Push directly to `main` on GitHub (`git push -u origin main`).
+### Rule 12: Autonomous Git Release Workflow & Mandatory Commit to Main
+1. **Verification**: Confirm all build/test DAG nodes pass verification.
+2. **Automated Staging of All Files**: Automatically stage **all** changes, modified files, and untracked files (`git add -A` or `git add .`).
+3. **Structured Commit to Main**: Automatically commit all staged changes directly to the `main` branch using Conventional Commit format (`feat:`, `fix:`, `chore:`, `docs:`) without prompting for manual user approval (`git commit -m "..."`).
+4. **Remote Push**: Push directly to `main` on GitHub/remote repository (`git push -u origin main`).
 
 ---
 

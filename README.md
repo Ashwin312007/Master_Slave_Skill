@@ -21,8 +21,9 @@
 - **🎯 Task-Based Model Selection First Protocol**: Mandatory protocol upon logging into any terminal session and launching CLIs to immediately select the optimal model (e.g. `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`) based on task requirements BEFORE running prompts.
 - **🔄 OpenCode Free-Tier Load Balancer**: Dynamically load-balances across free models specified in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`), with automatic rate-limit failover.
 - **💉 Automated Skill Context Injection**: Injects domain skills and task context directly into inner worker terminal sessions.
+- **🤖 Autonomous Inner CLI Auto-Approval**: Automatically approves all inner CLI questions, permission dialogs, tool execution confirmations (`-y`, `--yes`, `--dangerously-skip-permissions`), and interactive stdin queries without requiring user permission.
 - **🧠 Shared Memory Bus (`.hive/state.json`)**: Real-time cross-worker state management and diff reconciliation.
-- **🚀 Autonomous Git Synchronization**: Atomic conventional commits and automated push to `main`.
+- **🚀 Autonomous Git Synchronization & Main Release**: Automatically stages all file modifications and untracked files (`git add -A`), generates conventional commit messages, and commits directly to `main` (`git commit -m "..." && git push origin main`).
 
 ---
 
