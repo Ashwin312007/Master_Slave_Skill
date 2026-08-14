@@ -46,21 +46,31 @@ def load_opencode_models(filepath=DEFAULT_MODEL_FILE):
                             models.append(model)
     return models
 
+CLAUDE_MODELS = {
+    "architectural": "claude-3-7-sonnet",
+    "feature_coding": "claude-3-5-sonnet",
+    "fast_scripting": "claude-3-5-haiku",
+    "heavy_reasoning": "claude-3-opus"
+}
+
 def check_cli_tool(command_name):
     """Checks if a command-line tool exists in PATH."""
     path = shutil.which(command_name)
     return path is not None
 
 def check_environment():
-    """Validates CLI tools and OpenCode model configuration."""
+    """Validates CLI tools, Terminal Subversion readiness, and Claude/OpenCode model configurations."""
     if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     print("==================================================")
     print("[+] Master_Slave_Skill: Swarm Environment Status")
     print("==================================================")
     
     tools = {
-        "Antigravity CLI": "antigravity",
+        "Antigravity Cloud CLI": "antigravity",
         "Claude Code CLI": "claude",
         "GitHub Copilot CLI": "copilot",
         "GitHub CLI (gh)": "gh",
@@ -71,13 +81,17 @@ def check_environment():
     for name, cmd in tools.items():
         if cmd == sys.executable:
             status_summary[name] = True
-            print(f"  [✓] {name}: {sys.executable}")
+            print(f"  [OK] {name}: {sys.executable}")
         else:
             exists = check_cli_tool(cmd)
             status_summary[name] = exists
-            icon = "✓" if exists else "✗"
+            icon = "OK" if exists else "X"
             print(f"  [{icon}] {name}: {'Available' if exists else 'Not found in PATH'}")
     
+    print("\n🧠 Claude Model Presets (Antigravity Cloud & Copilot CLI):")
+    for category, model_id in CLAUDE_MODELS.items():
+        print(f"  * [{category.upper()}]: {model_id}")
+
     print("\n📦 OpenCode Free Models (D:\\Ashwin\\Claude Code models.txt):")
     models = load_opencode_models()
     for idx, model in enumerate(models, 1):
@@ -99,7 +113,12 @@ def init_hive():
             json.dump(initial_state, f, indent=2)
 
 def generate_task_dag(task_description):
-    """Generates a sample execution DAG for a task."""
+    """Generates an execution DAG for a task with mandatory task-based model selection."""
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     init_hive()
     dag = {
         "task": task_description,
@@ -108,20 +127,21 @@ def generate_task_dag(task_description):
                 "id": "node-1",
                 "title": "Architecture & Schema Design",
                 "engine": "antigravity",
-                "tier": "pro",
+                "selected_model": CLAUDE_MODELS["architectural"],
                 "dependencies": []
             },
             {
                 "id": "node-2",
                 "title": "Component & Feature Implementation",
                 "engine": "claude",
-                "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                "selected_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
                 "dependencies": ["node-1"]
             },
             {
                 "id": "node-3",
                 "title": "Shell Scripts & Command Validation",
                 "engine": "copilot",
+                "selected_model": CLAUDE_MODELS["fast_scripting"],
                 "dependencies": ["node-1"]
             }
         ]
@@ -130,7 +150,7 @@ def generate_task_dag(task_description):
     with open(DAG_FILE, "w", encoding="utf-8") as f:
         json.dump(dag, f, indent=2)
     
-    print(f"\n[✓] Generated Task DAG at {DAG_FILE}")
+    print(f"\n[OK] Generated Task DAG at {DAG_FILE}")
     print(json.dumps(dag, indent=2))
     return dag
 

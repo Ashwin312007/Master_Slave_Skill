@@ -1,14 +1,14 @@
 ---
 name: Master_Slave_Skill
-description: Standalone multi-agent swarm orchestration skill featuring DAG task decomposition, Triple-Engine worker fleet management (Antigravity CLI, Claude Code CLI with OpenCode free-tier models, GitHub Copilot CLI), dynamic skill context injection, shared memory state bus (.hive/state.json), empirical diff reconciliation, and automated Git release workflows.
+description: Standalone multi-agent swarm orchestration skill featuring DAG task decomposition, Triple-Engine worker fleet management (Antigravity Cloud CLI, Claude Code CLI with OpenCode free-tier models, GitHub Copilot CLI), unified terminal subversion execution, mandatory task-based Claude model selection first protocol, shared memory state bus (.hive/state.json), empirical diff reconciliation, and automated Git release workflows.
 ---
 
 # 👑 Master_Slave_Skill: Swarm Orchestration Engine
 
 `Master_Slave_Skill` is a self-contained, high-reliability AI swarm orchestration skill. It empowers a primary **Antigravity Master Instance** to decompose complex coding tasks into a Directed Acyclic Graph (DAG) of parallel sub-tasks and delegate execution across a **Triple-Engine Worker Fleet** consisting of:
-1. **Antigravity CLI Workers**: High-reasoning architectural design, multi-file refactoring, deep subagent execution.
+1. **Antigravity Cloud CLI Workers**: High-reasoning architectural design, multi-file refactoring, deep subagent execution with task-tailored Claude models.
 2. **Claude Code CLI Workers**: Powered by OpenCode free-tier API models listed in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`).
-3. **GitHub Copilot CLI Workers** (`copilot` / `gh copilot` v1.0.60+): Ultra-fast shell script generation, code synthesis, and command explanations.
+3. **GitHub Copilot CLI Workers** (`copilot` / `gh copilot` v1.0.60+): Ultra-fast shell script generation, code synthesis, and command explanations with configurable Claude models.
 
 ---
 
@@ -56,9 +56,27 @@ Map DAG task nodes to the optimal CLI worker engine based on task characteristic
 
 | Task Type | Worker Engine | Model Tier / Flags |
 | :--- | :--- | :--- |
-| **Architectural & Deep Refactoring** | `Antigravity CLI` | `pro` / `inherit` |
+| **Architectural & Deep Refactoring** | `Antigravity Cloud CLI` | `claude-3-7-sonnet` / `claude-3-opus` / `pro` |
 | **Component & Feature Coding** | `Claude Code CLI` | OpenCode Free Models (`--model <model-id>`) |
-| **Fast Shell & Script Generation** | `GitHub Copilot CLI` | `copilot` / `gh copilot` |
+| **Fast Shell & Script Generation** | `GitHub Copilot CLI` | `claude-3-5-sonnet` / `claude-3-5-haiku` (`copilot --model`) |
+
+### Rule 8A: Unified Terminal Subversion & Mandatory Task-Based Model Selection First Protocol
+1. **Unified Terminal Subversion Execution**:
+   - Maintain worker terminal execution within a single, isolated terminal subversion / sub-session to ensure consistent environment variables, credentials, and context tracking across worker tools.
+2. **Terminal Login & Worker CLI Launch**:
+   - Log into the terminal session and launch the required worker CLI tool: **Antigravity Cloud CLI** (`antigravity` / `antigravity cloud`), **GitHub Copilot CLI** (`copilot` / `gh copilot`), or **Claude Code CLI** (`claude`).
+3. **Mandatory Task-Based Model Selection First Rule**:
+   - **CRITICAL STEP**: Upon logging into any terminal and initiating a CLI worker session, the **VERY FIRST ACTION** before entering or executing any task prompt is to evaluate task requirements and **explicitly select the model to use based on the task**.
+   - **Claude Models in Antigravity Cloud & GitHub Copilot CLI**:
+     - Both Antigravity Cloud CLI and GitHub Copilot CLI support running **Claude Models** (`claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`).
+     - **Selection Matrix**:
+       - *Complex Architecture & Multi-File Refactoring*: Select `claude-3-7-sonnet` or `claude-3-opus`.
+       - *Standard Component Coding & Logic*: Select `claude-3-5-sonnet`.
+       - *Fast Scripting, One-Liners & Command Synthesis*: Select `claude-3-5-haiku` or task-tailored Copilot model.
+     - **CLI Model Selection Flags & Commands**:
+       - **Antigravity Cloud CLI**: `antigravity --model <claude-model-id>` or `/model <claude-model-id>` inside session.
+       - **GitHub Copilot CLI**: `copilot --model <claude-model-id>` or `gh copilot --model <claude-model-id>`.
+       - **Claude Code CLI**: `claude --model <model-id>` (selected from `D:\Ashwin\Claude Code models.txt`).
 
 ### Rule 9: OpenCode Free Model Load Balancing & Failover
 - Load available free models from `D:\Ashwin\Claude Code models.txt`:
