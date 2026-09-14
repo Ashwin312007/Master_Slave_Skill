@@ -1,216 +1,399 @@
 #!/usr/bin/env python3
-"""
-Master_Slave_Skill: Swarm Orchestration Engine
-Coordinates Antigravity CLI, Claude Code CLI (OpenCode free models), and GitHub Copilot CLI workers.
-"""
+"""Dynamic local CLI swarm harness for Master_Slave_Skill."""
 
-import os
-import sys
-import json
+from __future__ import annotations
+
 import argparse
-import subprocess
+import concurrent.futures
+import datetime as dt
+import json
+import os
+import re
 import shutil
+import subprocess
+import sys
+import uuid
 from pathlib import Path
 
-DEFAULT_MODEL_FILE = r"D:\Ashwin\Claude Code models.txt"
 HIVE_DIR = Path(".hive")
+REGISTRY_FILE = HIVE_DIR / "cli_registry.json"
 STATE_FILE = HIVE_DIR / "state.json"
 DAG_FILE = HIVE_DIR / "dag.json"
+RUNS_DIR = HIVE_DIR / "runs"
 
-def load_opencode_models(filepath=DEFAULT_MODEL_FILE):
-    """Parses free-tier OpenCode models from text file."""
-    models = []
-    if not os.path.exists(filepath):
-        print(f"[!] Warning: Model file not found at {filepath}")
-        return [
-            "nvidia/nemotron-3-ultra-550b-a55b:free",
-            "openai/gpt-oss-120b:free",
-            "qwen/qwen3-coder:free",
-            "z-ai/glm-4.5-air:free",
-            "poolside/laguna-s-2.1:free"
-        ]
-    
-    with open(filepath, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("claude --model "):
-                model = line.replace("claude --model ", "").strip()
-                if model and model not in models:
-                    models.append(model)
-            elif ":free" in line:
-                parts = line.split()
-                for part in parts:
-                    if ":free" in part:
-                        model = part.strip()
-                        if model not in models:
-                            models.append(model)
-    return models
+CANDIDATE_COMMANDS = [
+    "claude",
+    "copilot",
+    "antigravity",
+    "gemini",
+    "opencode",
+    "cline",
+    "klein",
+    "freebuff",
+    "codex",
+    "aider",
+]
 
-CLAUDE_MODELS = {
-    "architectural": "claude-3-7-sonnet",
-    "feature_coding": "claude-3-5-sonnet",
-    "fast_scripting": "claude-3-5-haiku",
-    "heavy_reasoning": "claude-3-opus"
-}
+PROMPT_FLAG_PATTERNS = [
+    (re.compile(r"(^|\s)-p([,\s=]|$)", re.I), "-p"),
+    (re.compile(r"--prompt\b", re.I), "--prompt"),
+    (re.compile(r"--message\b", re.I), "--message"),
+    (re.compile(r"--query\b", re.I), "--query"),
+    (re.compile(r"--exec\b", re.I), "--exec"),
+]
 
-def check_cli_tool(command_name):
-    """Checks if a command-line tool exists in PATH."""
-    path = shutil.which(command_name)
-    return path is not None
 
-def check_environment():
-    """Validates CLI tools, Terminal Subversion readiness, and Claude/OpenCode model configurations."""
-    if hasattr(sys.stdout, "reconfigure"):
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
-    print("==================================================")
-    print("[+] Master_Slave_Skill: Swarm Environment Status")
-    print("==================================================")
-    
-    tools = {
-        "Antigravity Cloud CLI": "antigravity",
-        "Claude Code CLI": "claude",
-        "GitHub Copilot CLI": "copilot",
-        "GitHub CLI (gh)": "gh",
-        "Python 3": sys.executable
-    }
-    
-    status_summary = {}
-    for name, cmd in tools.items():
-        if cmd == sys.executable:
-            status_summary[name] = True
-            print(f"  [OK] {name}: {sys.executable}")
-        else:
-            exists = check_cli_tool(cmd)
-            status_summary[name] = exists
-            icon = "OK" if exists else "X"
-            print(f"  [{icon}] {name}: {'Available' if exists else 'Not found in PATH'}")
-    
-    print("\n🧠 Claude Model Presets (Antigravity Cloud & Copilot CLI):")
-    for category, model_id in CLAUDE_MODELS.items():
-        print(f"  * [{category.upper()}]: {model_id}")
+def now_iso() -> str:
+    return dt.datetime.now(dt.timezone.utc).isoformat()
 
-    print("\n📦 OpenCode Free Models (D:\\Ashwin\\Claude Code models.txt):")
-    models = load_opencode_models()
-    for idx, model in enumerate(models, 1):
-        print(f"  {idx}. {model}")
-    
-    return status_summary
 
-def init_hive():
-    """Initializes .hive directory and state storage."""
+def init_hive() -> None:
     HIVE_DIR.mkdir(exist_ok=True)
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
     if not STATE_FILE.exists():
-        initial_state = {
-            "status": "initialized",
-            "workers": [],
-            "completed_tasks": [],
-            "diffs": {}
-        }
-        with open(STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump(initial_state, f, indent=2)
+        write_json(STATE_FILE, {"status": "initialized", "updated_at": now_iso(), "runs": []})
 
-def commit_and_push_to_main(commit_message="feat(swarm): automated task commit to main"):
-    """Automatically stages all modified/untracked files, commits to main branch, and pushes to remote."""
-    print("\n[+] Autonomous Git Release Workflow: Staging & Committing to main...")
+
+def read_json(path: Path, default):
     try:
-        subprocess.run(["git", "add", "-A"], check=True)
-        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        if not status.stdout.strip():
-            print("[+] Working tree clean. Nothing to commit.")
-            return True
-        subprocess.run(["git", "commit", "-m", commit_message], check=True)
-        print(f"[OK] Committed changes to main: '{commit_message}'")
-        push_res = subprocess.run(["git", "push", "-u", "origin", "main"], capture_output=True, text=True)
-        if push_res.returncode == 0:
-            print("[OK] Pushed changes directly to main branch on origin.")
-        else:
-            print(f"[!] Push warning (remote may require setup or authorization): {push_res.stderr.strip()}")
-        return True
-    except Exception as e:
-        print(f"[!] Git commit/push error: {e}")
-        return False
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default
 
-def generate_task_dag(task_description):
-    """Generates an execution DAG for a task with mandatory task-based model selection, skill injection, inner CLI auto-approval, and auto-commit to main."""
-    if hasattr(sys.stdout, "reconfigure"):
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+
+def write_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def run_probe(argv: list[str], timeout: int = 8) -> dict:
+    try:
+        result = subprocess.run(
+            argv,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
+        return {
+            "ok": result.returncode == 0,
+            "exit_code": result.returncode,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+        }
+    except Exception as exc:
+        return {"ok": False, "exit_code": None, "stdout": "", "stderr": str(exc)}
+
+
+def detect_prompt_mode(help_text: str) -> tuple[str | None, list[str] | None]:
+    for pattern, flag in PROMPT_FLAG_PATTERNS:
+        if pattern.search(help_text):
+            return "argument", ["{executable}", flag, "{prompt}"]
+    return None, None
+
+
+def discover_workers(extra_commands: list[str] | None = None) -> list[dict]:
+    """Discover candidate AI CLIs and infer only documented prompt syntax."""
     init_hive()
-    dag = {
-        "task": task_description,
-        "quality_standard": "Elite Production Craft (Zero Bare Minimum)",
-        "inner_cli_auto_approval": True,
-        "auto_commit_to_main": True,
-        "nodes": [
+    commands = []
+    for command in CANDIDATE_COMMANDS + (extra_commands or []):
+        if command and command not in commands:
+            commands.append(command)
+
+    previous = {w.get("name"): w for w in read_json(REGISTRY_FILE, {}).get("workers", [])}
+    workers = []
+
+    for command in commands:
+        path = shutil.which(command)
+        if not path:
+            continue
+
+        version = run_probe([path, "--version"])
+        help_result = run_probe([path, "--help"])
+        help_text = "\n".join(x for x in [help_result.get("stdout", ""), help_result.get("stderr", "")] if x)
+        mode, template = detect_prompt_mode(help_text)
+
+        existing = previous.get(command, {})
+        if not template and existing.get("argv_template"):
+            template = existing["argv_template"]
+            mode = existing.get("prompt_mode")
+
+        workers.append(
             {
-                "id": "node-1",
-                "title": "Architecture & Schema Design",
-                "engine": "antigravity",
-                "selected_model": CLAUDE_MODELS["architectural"],
-                "injected_skills": ["backend-architect", "api-design-principles", "database-architect"],
-                "quality_reflection": True,
-                "auto_approve_prompts": True,
-                "dependencies": []
-            },
-            {
-                "id": "node-2",
-                "title": "Component & Feature Implementation",
-                "engine": "claude",
-                "selected_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-                "injected_skills": ["frontend-developer", "ui-ux-designer", "tailwind-design-system"],
-                "quality_reflection": True,
-                "auto_approve_prompts": True,
-                "dependencies": ["node-1"]
-            },
-            {
-                "id": "node-3",
-                "title": "Shell Scripts & Command Validation",
-                "engine": "copilot",
-                "selected_model": CLAUDE_MODELS["fast_scripting"],
-                "injected_skills": ["bash-pro", "devops-troubleshooter"],
-                "quality_reflection": True,
-                "auto_approve_prompts": True,
-                "dependencies": ["node-1"]
+                "name": command,
+                "executable": path,
+                "available": True,
+                "version": version.get("stdout") or version.get("stderr") or None,
+                "prompt_mode": mode,
+                "argv_template": template,
+                "syntax_status": "ready" if template else "needs_adapter",
+                "discovered_at": now_iso(),
             }
-        ]
+        )
+
+    registry = {"updated_at": now_iso(), "workers": workers}
+    write_json(REGISTRY_FILE, registry)
+    return workers
+
+
+def load_workers(ready_only: bool = False) -> list[dict]:
+    workers = read_json(REGISTRY_FILE, {}).get("workers", [])
+    if ready_only:
+        workers = [w for w in workers if w.get("available") and w.get("argv_template")]
+    return workers
+
+
+def register_worker(adapter_path: str) -> dict:
+    """Merge one explicit JSON adapter into the local registry."""
+    init_hive()
+    adapter = read_json(Path(adapter_path), None)
+    if not isinstance(adapter, dict):
+        raise ValueError("Adapter must be a JSON object")
+    for key in ("name", "argv_template"):
+        if key not in adapter:
+            raise ValueError(f"Adapter missing required field: {key}")
+    if not isinstance(adapter["argv_template"], list) or not adapter["argv_template"]:
+        raise ValueError("argv_template must be a non-empty JSON array")
+
+    workers = load_workers()
+    workers = [w for w in workers if w.get("name") != adapter["name"]]
+    executable = adapter.get("executable") or adapter["argv_template"][0]
+    resolved = shutil.which(executable) or executable
+    adapter.update(
+        {
+            "executable": resolved,
+            "available": bool(shutil.which(executable) or Path(str(executable)).exists()),
+            "syntax_status": "ready",
+            "registered_at": now_iso(),
+        }
+    )
+    workers.append(adapter)
+    write_json(REGISTRY_FILE, {"updated_at": now_iso(), "workers": workers})
+    return adapter
+
+
+def build_worker_prompt(master_task: str, worker_name: str, role: str = "independent reviewer") -> str:
+    return f"""MASTER TASK
+{master_task}
+
+WORKER ROLE
+{role}
+
+INSTRUCTIONS
+- Work only on the task above.
+- Inspect the current working directory as needed.
+- Do not make unrelated changes.
+- If you are acting as a reviewer, do not modify files.
+- Return concrete findings, recommended changes, and verification commands.
+- State uncertainties instead of inventing facts.
+
+EXPECTED OUTPUT
+A concise implementation/review report that the Master agent can evaluate and integrate.
+
+WORKER
+{worker_name}
+"""
+
+
+def materialize_argv(worker: dict, prompt: str) -> tuple[list[str], str | None]:
+    template = worker.get("argv_template")
+    if not template:
+        raise ValueError(f"Worker {worker.get('name')} has no registered invocation adapter")
+
+    executable = worker.get("executable") or template[0]
+    argv = []
+    uses_prompt_arg = False
+    for token in template:
+        token = str(token)
+        if token == "{executable}":
+            argv.append(str(executable))
+        elif token == "{prompt}":
+            argv.append(prompt)
+            uses_prompt_arg = True
+        else:
+            argv.append(token.replace("{executable}", str(executable)).replace("{prompt}", prompt))
+            if "{prompt}" in token:
+                uses_prompt_arg = True
+
+    stdin_text = None if uses_prompt_arg else prompt if worker.get("prompt_mode") == "stdin" else None
+    return argv, stdin_text
+
+
+def run_worker(worker: dict, task: str, cwd: str, timeout: int, run_dir: Path, role: str) -> dict:
+    prompt = build_worker_prompt(task, worker["name"], role=role)
+    started = now_iso()
+    receipt = {
+        "worker": worker["name"],
+        "role": role,
+        "started_at": started,
+        "cwd": str(Path(cwd).resolve()),
+        "prompt": prompt,
+        "status": "failed",
     }
-    
-    with open(DAG_FILE, "w", encoding="utf-8") as f:
-        json.dump(dag, f, indent=2)
-    
-    print(f"\n[OK] Generated Task DAG at {DAG_FILE}")
-    print(json.dumps(dag, indent=2))
+
+    try:
+        argv, stdin_text = materialize_argv(worker, prompt)
+        receipt["argv"] = argv
+        result = subprocess.run(
+            argv,
+            cwd=cwd,
+            input=stdin_text,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
+        receipt.update(
+            {
+                "exit_code": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "status": "completed" if result.returncode == 0 else "failed",
+            }
+        )
+    except subprocess.TimeoutExpired as exc:
+        receipt.update(
+            {
+                "exit_code": None,
+                "stdout": exc.stdout or "",
+                "stderr": exc.stderr or "",
+                "status": "timeout",
+            }
+        )
+    except Exception as exc:
+        receipt.update({"exit_code": None, "stdout": "", "stderr": str(exc), "status": "failed"})
+
+    receipt["finished_at"] = now_iso()
+    write_json(run_dir / f"{worker['name']}.json", receipt)
+    return receipt
+
+
+def generate_task_dag(task: str, workers: list[dict]) -> dict:
+    """Create a generic plan using the actual ready worker fleet."""
+    init_hive()
+    nodes = []
+    roles = ["architecture reviewer", "implementation reviewer", "test and verification reviewer", "security and edge-case reviewer"]
+    for index, worker in enumerate(workers):
+        nodes.append(
+            {
+                "id": f"node-{index + 1}",
+                "worker": worker["name"],
+                "role": roles[index % len(roles)],
+                "mode": "read-only review",
+                "dependencies": [],
+            }
+        )
+    dag = {"task": task, "created_at": now_iso(), "nodes": nodes}
+    write_json(DAG_FILE, dag)
     return dag
 
-def main():
-    parser = argparse.ArgumentParser(description="Master_Slave_Skill Swarm Orchestration Engine")
-    parser.add_argument("--check-environment", action="store_true", help="Check CLI tools and OpenCode models")
-    parser.add_argument("--test-models", action="store_true", help="Test loading OpenCode free models")
-    parser.add_argument("--test-dag", action="store_true", help="Test DAG task generation")
-    parser.add_argument("--commit-main", action="store_true", help="Commit all changes to main branch of git")
-    parser.add_argument("--task", type=str, help="Task description to orchestrate")
-    
+
+def run_swarm(task: str, cwd: str, timeout: int, all_workers: bool, max_workers: int) -> dict:
+    init_hive()
+    workers = load_workers(ready_only=True)
+    if not workers:
+        workers = [w for w in discover_workers() if w.get("argv_template")]
+    if not workers:
+        raise RuntimeError("No runnable worker adapters found. Run --discover, then register adapters for CLIs marked needs_adapter.")
+
+    selected = workers if all_workers else workers[: min(len(workers), max_workers)]
+    dag = generate_task_dag(task, selected)
+    run_id = dt.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
+    run_dir = RUNS_DIR / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    receipts = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(max_workers, len(selected))) as pool:
+        futures = []
+        for node in dag["nodes"]:
+            worker = next(w for w in selected if w["name"] == node["worker"])
+            futures.append(pool.submit(run_worker, worker, task, cwd, timeout, run_dir, node["role"]))
+        for future in concurrent.futures.as_completed(futures):
+            receipts.append(future.result())
+
+    summary = {
+        "run_id": run_id,
+        "task": task,
+        "cwd": str(Path(cwd).resolve()),
+        "workers_requested": [w["name"] for w in selected],
+        "completed": [r["worker"] for r in receipts if r["status"] == "completed"],
+        "failed": [r["worker"] for r in receipts if r["status"] != "completed"],
+        "receipts": [str(run_dir / f"{r['worker']}.json") for r in receipts],
+        "finished_at": now_iso(),
+    }
+    write_json(run_dir / "summary.json", summary)
+
+    state = read_json(STATE_FILE, {"runs": []})
+    state.setdefault("runs", []).append(summary)
+    state["updated_at"] = now_iso()
+    state["status"] = "completed"
+    write_json(STATE_FILE, state)
+    return summary
+
+
+def print_workers(workers: list[dict]) -> None:
+    if not workers:
+        print("No workers discovered. Run --discover.")
+        return
+    for worker in workers:
+        print(
+            f"{worker.get('name')}: {worker.get('syntax_status', 'unknown')} | "
+            f"{worker.get('executable')} | {worker.get('version') or 'version unknown'}"
+        )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Dynamic local AI CLI swarm harness")
+    parser.add_argument("--discover", action="store_true", help="Discover installed AI CLIs and update .hive/cli_registry.json")
+    parser.add_argument("--extra-cli", action="append", default=[], help="Additional executable name to include during discovery")
+    parser.add_argument("--list-workers", action="store_true", help="Show the local worker registry")
+    parser.add_argument("--register-worker", type=str, help="Register/replace a worker using a JSON adapter file")
+    parser.add_argument("--task", type=str, help="Master task to decompose or execute")
+    parser.add_argument("--run", action="store_true", help="Execute compatible workers for --task")
+    parser.add_argument("--all-workers", action="store_true", help="Use every runnable discovered worker")
+    parser.add_argument("--cwd", default=".", help="Working directory given to worker processes")
+    parser.add_argument("--timeout", type=int, default=600, help="Per-worker timeout in seconds")
+    parser.add_argument("--max-workers", type=int, default=4, help="Maximum concurrent worker processes")
     args = parser.parse_args()
-    
-    if args.check_environment:
-        check_environment()
-    elif args.test_models:
-        models = load_opencode_models()
-        print(f"Loaded {len(models)} models:")
-        for m in models:
-            print(f" - {m}")
-    elif args.commit_main:
-        commit_and_push_to_main("feat(swarm): autonomous release commit to main")
-    elif args.test_dag or args.task:
-        task = args.task or "Build full-stack microservice with tests"
-        generate_task_dag(task)
-    else:
-        parser.print_help()
+
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+    if args.discover:
+        workers = discover_workers(args.extra_cli)
+        print_workers(workers)
+        return 0
+
+    if args.register_worker:
+        adapter = register_worker(args.register_worker)
+        print(f"Registered {adapter['name']}")
+        return 0
+
+    if args.list_workers:
+        print_workers(load_workers())
+        return 0
+
+    if args.task and args.run:
+        summary = run_swarm(args.task, args.cwd, args.timeout, args.all_workers, args.max_workers)
+        print(json.dumps(summary, indent=2))
+        return 0
+
+    if args.task:
+        workers = load_workers(ready_only=True)
+        dag = generate_task_dag(args.task, workers)
+        print(json.dumps(dag, indent=2))
+        return 0
+
+    parser.print_help()
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
