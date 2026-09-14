@@ -1,143 +1,562 @@
 ---
 name: Master_Slave_Skill
-description: Standalone multi-agent swarm orchestration skill featuring DAG task decomposition, Triple-Engine worker fleet management (Antigravity Cloud CLI, Claude Code CLI with OpenCode free-tier models, GitHub Copilot CLI), unified terminal subversion execution, mandatory task-based Claude model selection first protocol, shared memory state bus (.hive/state.json), empirical diff reconciliation, inner CLI autonomous prompt auto-approval, and automated Git release workflows committing directly to main.
+description: Dynamic multi-agent CLI orchestration skill. The active coding agent becomes the Master, discovers AI CLIs installed on the machine, inspects their supported invocation syntax, decomposes work, launches compatible CLI workers through the local shell, injects scoped prompts and relevant skills, captures results, reconciles conflicts, verifies the final solution, and reports evidence.
 ---
 
-# 👑 Master_Slave_Skill: Swarm Orchestration Engine
+# Master_Slave_Skill
 
-`Master_Slave_Skill` is a self-contained, high-reliability AI swarm orchestration skill. It empowers a primary **Antigravity Master Instance** to decompose complex coding tasks into a Directed Acyclic Graph (DAG) of parallel sub-tasks and delegate execution across a **Triple-Engine Worker Fleet** consisting of:
-1. **Antigravity Cloud CLI Workers**: High-reasoning architectural design, multi-file refactoring, deep subagent execution with task-tailored Claude models.
-2. **Claude Code CLI Workers**: Powered by OpenCode free-tier API models listed in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`).
-3. **GitHub Copilot CLI Workers** (`copilot` / `gh copilot` v1.0.60+): Ultra-fast shell script generation, code synthesis, and command explanations with configurable Claude models.
+`Master_Slave_Skill` turns the agent currently holding this skill into the **Master Orchestrator**.
 
----
+The Master does not assume a fixed worker fleet. It discovers the AI coding CLIs that actually exist on the user's machine and uses the available ones as workers.
 
-## 💬 Communication & Format Standards
+Examples may include:
 
-- **Chat Window Output (TUI)**: Strictly use **Caveman Language** (terse, high-density, direct receipts, zero conversational filler). Keep text responses concise to save context window tokens.
-- **Artifacts**: Use structured GitHub-Flavored Markdown for plans, architecture diagrams, and post-execution walkthroughs.
+```text
+Claude Code
+GitHub Copilot CLI
+Antigravity
+Gemini CLI
+OpenCode
+Cline / Klein-compatible CLI
+Freebuff-compatible CLI
+Codex CLI
+Aider
+other user-installed AI CLIs
+```
 
----
-
-## 📌 Core Operational Rules (Embedded & Standalone)
-
-### Rule 1: Planning, Approval Gate & Autonomous Inner CLI Auto-Approval
-- **Plan Before Execution**: Construct an explicit **Artifact Plan** detailing objectives, task DAG, selected model tiers, and verification steps before modifying files.
-- **Autonomous Inner CLI Prompt Auto-Approval**: For all inner CLI tools, sub-shells, package managers, git commands, and worker sessions (Antigravity Cloud CLI, Claude Code CLI, GitHub Copilot CLI), **automatically approve all interactive prompts, permission questions, and confirmation dialogs** (using flags like `--yes`, `-y`, `--dangerously-skip-permissions`, `--non-interactive`, or auto-responding `yes`/`y` to stdin prompts) without pausing or asking for manual user permission.
-- **2-Consecutive Rejections Guard**: If the user rejects the plan artifact **2 consecutive times**, stop automated plan generation. Prompt the user directly in TUI Caveman text to provide exact requirements or manual step-by-step instructions.
-
-### Rule 2: Zero Assumptions & Interactive Clarification
-- **Make no assumptions.** If any requirement, architectural detail, CLI flag, path, or API contract is ambiguous, ask the user directly to clarify before drafting or executing the plan.
-
-### Rule 3: Zero Bare-Minimum Output & Elite Production Craft
-- **No Half-Baked MVPs or Placeholder Code**: Never deliver minimal viable prototypes, unstyled HTML/CSS, shallow script skeletons, or basic placeholder implementations. Every output—whether a full-stack web application, a backend microservice, or an automation script—must be fully realized, resilient, and production-ready.
-- **Deep Design & Engineering Rigor**:
-  - **User Interfaces & Web Apps**: Deliver premium visual aesthetics, curated typography, fluid responsiveness, interactive micro-animations, comprehensive state management, and edge-case error boundaries.
-  - **Systems & Backend Architectures**: Implement robust error handling, structured logging, strict type validation, and clean, scalable modular design.
-- **Mandatory Self-Reflection & Enhancement Pass**:
-  - Before writing code or marking a task DAG node as complete, every worker instance MUST execute a mandatory self-review:
-    - *Is this solution bare minimum or merely functional?*
-    - *How can the interaction design, performance, reliability, or code architecture be further elevated?*
-  - Iterate and refine the implementation until it achieves uncompromising software craft.
-
-### Rule 4: Contained Edits & Strict Scope Limits
-- **Strict Scope Boundary**: Do not modify adjacent or unrelated files. Keep code edits strictly localized to the target files explicitly required for the task.
-
-### Rule 5: Empirical Runtime Verification
-- **Gather Empirical Proof**: Never declare a task complete without running empirical build, unit test, or validation commands demonstrating clean success.
-
-### Rule 6: Tool & Service Fallback Protocol
-- If any MCP server, model API, or worker CLI times out or becomes unavailable:
-  - Alert the user immediately in TUI Caveman text.
-  - Do NOT silently skip verification steps.
-  - Rotate worker to the next available free model or fall back to local thread execution.
+Names above are examples only. Availability and invocation syntax must be detected locally before use.
 
 ---
 
-## 🐝 Swarm Orchestration Engine Protocols
+## 1. Core Principle
 
-### Rule 7: Task DAG Decomposition
-- The Master Antigravity Instance analyzes incoming user prompts and constructs an execution DAG (`.hive/dag.json`) containing parallel task nodes, explicit input/output contracts, and worker type assignments.
+The **current agent is always the Master**.
 
-### Rule 8: Triple-Engine Worker Fleet Allocation
-Map DAG task nodes to the optimal CLI worker engine based on task characteristics:
+The Master owns:
 
-| Task Type | Worker Engine | Model Tier / Flags |
-| :--- | :--- | :--- |
-| **Architectural & Deep Refactoring** | `Antigravity Cloud CLI` | `claude-3-7-sonnet` / `claude-3-opus` / `pro` |
-| **Component & Feature Coding** | `Claude Code CLI` | OpenCode Free Models (`--model <model-id>`) |
-| **Fast Shell & Script Generation** | `GitHub Copilot CLI` | `claude-3-5-sonnet` / `claude-3-5-haiku` (`copilot --model`) |
+- task understanding
+- planning
+- worker discovery
+- task decomposition
+- worker selection
+- prompt construction
+- terminal execution
+- result collection
+- conflict resolution
+- code integration
+- verification
+- final reporting
 
-### Rule 8A: Unified Terminal Subversion & Mandatory Task-Based Model Selection First Protocol
-1. **Unified Terminal Subversion Execution**:
-   - Maintain worker terminal execution within a single, isolated terminal subversion / sub-session to ensure consistent environment variables, credentials, and context tracking across worker tools.
-2. **Terminal Login & Worker CLI Launch**:
-   - Log into the terminal session and launch the required worker CLI tool: **Antigravity Cloud CLI** (`antigravity` / `antigravity cloud`), **GitHub Copilot CLI** (`copilot` / `gh copilot`), or **Claude Code CLI** (`claude`).
-3. **Mandatory Task-Based Model Selection First Rule**:
-   - **CRITICAL STEP**: Upon logging into any terminal and initiating a CLI worker session, the **VERY FIRST ACTION** before entering or executing any task prompt is to evaluate task requirements and **explicitly select the model to use based on the task**.
-   - **Claude Models in Antigravity Cloud & GitHub Copilot CLI**:
-     - Both Antigravity Cloud CLI and GitHub Copilot CLI support running **Claude Models** (`claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`).
-     - **Selection Matrix**:
-       - *Complex Architecture & Multi-File Refactoring*: Select `claude-3-7-sonnet` or `claude-3-opus`.
-       - *Standard Component Coding & Logic*: Select `claude-3-5-sonnet`.
-       - *Fast Scripting, One-Liners & Command Synthesis*: Select `claude-3-5-haiku` or task-tailored Copilot model.
-     - **CLI Model Selection Flags & Commands**:
-       - **Antigravity Cloud CLI**: `antigravity --model <claude-model-id>` or `/model <claude-model-id>` inside session.
-       - **GitHub Copilot CLI**: `copilot --model <claude-model-id>` or `gh copilot --model <claude-model-id>`.
-       - **Claude Code CLI**: `claude --model <model-id>` (selected from `D:\Ashwin\Claude Code models.txt`).
-
-### Rule 9: OpenCode Free Model Load Balancing & Failover
-- Load available free models from `D:\Ashwin\Claude Code models.txt`:
-  1. `nvidia/nemotron-3-ultra-550b-a55b:free`
-  2. `openai/gpt-oss-120b:free`
-  3. `openai/gpt-oss-20b:free`
-  4. `qwen/qwen3-coder:free`
-  5. `z-ai/glm-4.5-air:free`
-  6. `cohere/north-mini-code:free`
-  7. `poolside/laguna-s-2.1:free`
-  8. `poolside/laguna-xs-2.1:free`
-  9. `meta-llama/llama-3.3-70b-instruct:free`
-  10. `xiaomi/mimo-v2-flash:free`
-- If an API rate limit or error occurs during execution, automatically rotate to the next free model in the sequence.
-
-### Rule 10: Multi-Terminal Fleet Execution & Mandatory Dynamic Skill Context Injection
-- **Concurrent Multi-Terminal Worker Swarm**:
-  - The orchestrator can spawn and execute across **multiple parallel terminal instances** of Antigravity Cloud CLI, Claude Code CLI, and GitHub Copilot CLI simultaneously.
-- **Mandatory Dynamic Skill Bootstrapping**:
-  - **NEVER RUN BARE WORKERS**: Every single worker terminal instance launched in the fleet MUST be dynamically bootstrapped with relevant domain skills before starting code generation.
-  - Skill injection pipeline:
-    1. Scan task node domain requirements (e.g., `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `backend-architect`, `api-design-principles`, `security-auditor`).
-    2. Inject `SKILL.md` instructions and referenced templates directly into the worker's initial prompt context.
-    3. Inject `Master_Slave_Skill` core operational rules and Task DAG node contracts.
-- **Continuous Skill-Driven Reflection & Quality Elevation**:
-  - Every worker in every terminal session must continuously evaluate its work against injected skill domain standards:
-    - *How can this code, architecture, or UI be improved using the injected skill best practices?*
-    - *Are all micro-interactions, responsive states, type definitions, and error boundaries fully realized?*
-  - Re-evaluate and refine until the code achieves elite production quality with zero bare-minimum compromises.
-
-### Rule 11: Shared Memory Bus (`.hive/state.json`) & Conflict Reconciliation
-- Workers output task diffs, generated files, and receipts to `.hive/state.json`.
-- The Master instance executes empirical build/test validation in a sandbox environment.
-- If conflicting edits occur across parallel workers, the Master instance uses LLM Council diff reconciliation to generate a unified, non-breaking patch.
-
-### Rule 12: Autonomous Git Release Workflow & Mandatory Commit to Main
-1. **Verification**: Confirm all build/test DAG nodes pass verification.
-2. **Automated Staging of All Files**: Automatically stage **all** changes, modified files, and untracked files (`git add -A` or `git add .`).
-3. **Structured Commit to Main**: Automatically commit all staged changes directly to the `main` branch using Conventional Commit format (`feat:`, `fix:`, `chore:`, `docs:`) without prompting for manual user approval (`git commit -m "..."`).
-4. **Remote Push**: Push directly to `main` on GitHub/remote repository (`git push -u origin main`).
+Worker CLIs are subordinate execution/review engines. They do not replace the Master and do not make final decisions independently.
 
 ---
 
-## 🛠️ Orchestration Script Execution
+## 2. Mandatory Plan Before Modification
 
-To launch the swarm orchestrator:
+Before changing project files, the Master must present a short plan containing:
+
+```text
+Goal
+Files/areas likely affected
+Worker CLIs to discover/use
+Task split
+Verification plan
+```
+
+Do not modify project files until the plan is approved when the host environment requires approval.
+
+Keep edits scoped to the user's task.
+
+---
+
+## 3. Dynamic CLI Discovery — Mandatory First Step
+
+Never assume a CLI is installed merely because it is listed in this skill.
+
+Before creating the worker fleet, inspect the local machine.
+
+### Windows
+
+Use commands such as:
 
 ```powershell
-# Cross-Platform Swarm Orchestrator (Windows / PowerShell)
-python "$env:USERPROFILE\.gemini\config\skills\Master_Slave_Skill\scripts\swarm_orchestrator.py" --task "Task description"
+Get-Command claude -ErrorAction SilentlyContinue
+Get-Command copilot -ErrorAction SilentlyContinue
+Get-Command gh -ErrorAction SilentlyContinue
+Get-Command antigravity -ErrorAction SilentlyContinue
+Get-Command gemini -ErrorAction SilentlyContinue
+Get-Command opencode -ErrorAction SilentlyContinue
+Get-Command cline -ErrorAction SilentlyContinue
+Get-Command klein -ErrorAction SilentlyContinue
+Get-Command freebuff -ErrorAction SilentlyContinue
+Get-Command codex -ErrorAction SilentlyContinue
+Get-Command aider -ErrorAction SilentlyContinue
 ```
 
-```bash
-# Linux / macOS (Bash)
-python "$HOME/.gemini/config/skills/Master_Slave_Skill/scripts/swarm_orchestrator.py" --task "Task description"
+or use the included orchestrator:
+
+```powershell
+python scripts/swarm_orchestrator.py --discover
 ```
+
+### Linux / macOS
+
+Use `command -v`, `which`, or the orchestrator discovery command.
+
+### Discovery output
+
+Record discovered workers in:
+
+```text
+.hive/cli_registry.json
+```
+
+For each detected CLI record, where available:
+
+```text
+name
+executable path
+version
+help output summary
+non-interactive prompt mode
+model-selection support
+working-directory support
+status
+```
+
+Do not invent unsupported flags.
+
+---
+
+## 4. CLI Syntax Inspection
+
+For every newly discovered CLI, inspect its actual local syntax before invocation.
+
+Prefer read-only commands such as:
+
+```text
+<cli> --version
+<cli> --help
+<cli> help
+```
+
+Determine whether the CLI supports a documented non-interactive prompt option such as:
+
+```text
+-p
+--prompt
+--message
+--query
+--exec
+```
+
+These are examples, not guaranteed flags.
+
+If a documented prompt flag cannot be identified, the orchestrator may attempt stdin mode only if the CLI behaves as an interactive text client.
+
+If invocation remains ambiguous, the Master must ask the user or register an explicit adapter rather than guessing.
+
+---
+
+## 5. Worker Adapter Registry
+
+The harness stores worker invocation information in:
+
+```text
+.hive/cli_registry.json
+```
+
+A worker adapter should contain an argument-vector template, for example:
+
+```json
+{
+  "name": "example",
+  "executable": "example",
+  "argv_template": ["example", "--prompt", "{prompt}"],
+  "prompt_mode": "argument",
+  "available": true
+}
+```
+
+or stdin mode:
+
+```json
+{
+  "name": "example",
+  "executable": "example",
+  "argv_template": ["example"],
+  "prompt_mode": "stdin",
+  "available": true
+}
+```
+
+Use argument arrays rather than shell-string concatenation whenever possible.
+
+Never embed credentials, API keys, or tokens in the registry.
+
+---
+
+## 6. No Fixed Triple-Engine Fleet
+
+The previous fixed three-worker assumption is forbidden.
+
+The fleet is:
+
+```text
+all compatible AI CLIs discovered on this machine
+```
+
+The Master may use one, several, or all available workers depending on the task.
+
+Do not fail merely because one named CLI is absent.
+
+---
+
+## 7. Task Decomposition
+
+For non-trivial work, decompose the user task into independent or ordered nodes.
+
+Each node must define:
+
+```text
+id
+goal
+inputs
+expected output
+files allowed to inspect
+files allowed to modify, if any
+worker role
+dependencies
+verification requirement
+```
+
+Prefer parallel nodes only when they do not edit the same files concurrently.
+
+Typical roles:
+
+```text
+architecture review
+implementation
+bug investigation
+test generation
+security review
+performance review
+documentation
+shell/build diagnosis
+independent code review
+```
+
+---
+
+## 8. Worker Selection
+
+Select workers based on **capabilities discovered from the local CLI**, not brand assumptions.
+
+Consider:
+
+- model availability
+- repository awareness
+- coding ability
+- shell/tool support
+- context-window needs
+- task latency
+- rate limits
+- whether the CLI can run non-interactively
+
+The Master may assign the same node to multiple workers when independent opinions materially improve reliability.
+
+Do not invoke extra workers when they add no value.
+
+---
+
+## 9. Prompt Contract for Every Worker
+
+Every worker prompt must be scoped.
+
+Include:
+
+```text
+MASTER TASK
+WORKER ROLE
+NODE GOAL
+RELEVANT CONTEXT
+ALLOWED FILES
+FORBIDDEN SCOPE
+EXPECTED OUTPUT
+VERIFICATION REQUEST
+```
+
+The worker must be told whether it is:
+
+```text
+READ-ONLY REVIEW
+or
+IMPLEMENTATION WORKER
+```
+
+For review workers, explicitly forbid file modification.
+
+For implementation workers, restrict edits to assigned files.
+
+---
+
+## 10. Skill Context Injection
+
+When another domain skill is relevant, inject only the relevant instructions into the worker prompt.
+
+Examples:
+
+```text
+STM32_Programmer
+Arduino_Programmer
+SBC_Programmer
+ROS_Programmer
+frontend/backend/testing/security skills
+```
+
+Do not dump unrelated skills into every worker.
+
+The Master remains responsible for resolving conflicts between skill instructions.
+
+---
+
+## 11. Running Worker CLIs
+
+The Master launches workers through the local shell or through:
+
+```bash
+python scripts/swarm_orchestrator.py --task "<task>" --run
+```
+
+Worker processes should run with:
+
+- explicit working directory
+- timeout
+- captured stdout
+- captured stderr
+- captured exit code
+- worker identifier
+- task-node identifier
+
+Where safe and useful, independent read-only workers may run concurrently.
+
+Do not run concurrent implementation workers against overlapping files.
+
+---
+
+## 12. Inner CLI Permissions
+
+Do not blindly pass dangerous permission-bypass flags to every CLI.
+
+The Master may use a documented non-interactive/yes flag only for routine worker-session confirmations when the requested operation is already authorized.
+
+Never automatically approve:
+
+- destructive filesystem deletion
+- credential exposure
+- secret modification
+- destructive cloud operations
+- force pushes
+- irreversible database operations
+- unrelated package/system changes
+
+Worker autonomy is subordinate to the Master's safety and scope rules.
+
+---
+
+## 13. Worker Result Capture
+
+Store execution receipts under:
+
+```text
+.hive/runs/<run-id>/
+```
+
+For each worker capture:
+
+```text
+worker name
+node id
+prompt
+start/end time
+command argv
+exit code
+stdout
+stderr
+status
+```
+
+Maintain summary state in:
+
+```text
+.hive/state.json
+```
+
+Do not treat a successful process exit as proof that the worker's answer is correct.
+
+---
+
+## 14. Master Synthesis
+
+After workers return, the Master must independently evaluate their outputs.
+
+The Master must:
+
+1. compare recommendations
+2. reject unsupported claims
+3. inspect proposed code/diffs
+4. reconcile contradictions
+5. choose the simplest correct implementation
+6. integrate only required changes
+7. verify the integrated result itself
+
+Workers are advisers/executors. The Master is the final authority.
+
+---
+
+## 15. Conflict Prevention
+
+Prefer this pattern:
+
+```text
+many read-only workers -> one implementation worker -> Master verification
+```
+
+When multiple implementation workers are necessary:
+
+- assign disjoint files or modules
+- use separate branches/worktrees when available
+- never let workers race-edit the same file
+- integrate changes only after review
+
+Do not use `.hive/state.json` as a replacement for Git or filesystem truth.
+
+---
+
+## 16. Failure and Failover
+
+If a worker fails:
+
+```text
+1. capture stderr and exit code
+2. determine whether the failure is invocation, auth, rate limit, model, or task-related
+3. retry only when justified
+4. route the node to another compatible discovered worker if useful
+5. continue with fewer workers if the task remains solvable
+```
+
+Do not enter infinite retry loops.
+
+Do not silently pretend a failed worker participated.
+
+---
+
+## 17. Model Selection
+
+If a CLI exposes model selection, inspect its installed/local documentation first.
+
+Choose a model based on the node's complexity.
+
+Do not hard-code historical model names as universal defaults because CLI providers and available models change.
+
+If model selection is unavailable or unclear, use the CLI's configured default.
+
+---
+
+## 18. Verification
+
+The Master must verify the final integrated work independently of worker claims.
+
+Use task-appropriate evidence such as:
+
+```text
+build
+unit tests
+integration tests
+lint/type checks
+runtime smoke test
+hardware verification
+CLI command output
+Git diff inspection
+```
+
+A worker saying "done" is not verification.
+
+---
+
+## 19. Git Rules
+
+Do not automatically stage every repository file.
+
+Prefer explicit staging of files changed for the approved task.
+
+Before commit/push verify:
+
+```bash
+git status --short
+git diff --check
+git diff
+```
+
+Do not force-push unless explicitly requested.
+
+Do not push to `main` automatically unless the user or active parent workflow explicitly requests it.
+
+---
+
+## 20. Orchestrator Commands
+
+Discover installed AI CLIs:
+
+```bash
+python scripts/swarm_orchestrator.py --discover
+```
+
+Show registry:
+
+```bash
+python scripts/swarm_orchestrator.py --list-workers
+```
+
+Create a task plan/DAG:
+
+```bash
+python scripts/swarm_orchestrator.py --task "Implement feature X"
+```
+
+Create and run workers:
+
+```bash
+python scripts/swarm_orchestrator.py --task "Implement feature X" --run
+```
+
+Run all compatible discovered workers as independent reviewers:
+
+```bash
+python scripts/swarm_orchestrator.py --task "Review this repository for bugs" --run --all-workers
+```
+
+Register an explicit adapter when automatic syntax discovery is insufficient:
+
+```bash
+python scripts/swarm_orchestrator.py --register-worker worker.json
+```
+
+---
+
+## 21. Completion Report
+
+At completion report:
+
+```text
+Goal
+Workers discovered
+Workers actually used
+Task split
+Files changed
+Worker failures/fallbacks
+Verification performed
+Final result
+```
+
+Never claim a worker ran if no process receipt exists.

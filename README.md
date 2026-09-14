@@ -1,58 +1,236 @@
-# 👑 Master_Slave_Skill: Swarm Orchestration Engine
+# Master_Slave_Skill
 
-> Standalone, Multi-Agent Swarm Orchestration Engine for AI Coding CLIs.
+> Dynamic local multi-agent orchestration for AI coding CLIs.
 
-## 📖 Overview
+## What Changed
 
-`Master_Slave_Skill` is an advanced multi-agent orchestration skill designed to coordinate a fleet of worker CLI tools (**Antigravity CLI**, **Claude Code CLI**, and **GitHub Copilot CLI**) to execute complex programming tasks in parallel.
+The active coding agent is the **Master**. Instead of assuming only three fixed tools, it discovers the AI CLIs actually installed on the machine, inspects their local invocation syntax, routes work to compatible workers, launches them through the shell, captures their outputs, and synthesizes the final result.
 
----
+The fleet can include tools such as:
 
-## ✨ Core Capabilities
-
-- **🐝 Multi-Agent Swarm Architecture**: Decomposes complex coding prompts into a Directed Acyclic Graph (DAG) of parallel sub-tasks.
-- **⚡ Triple-Engine Worker Fleet**:
-  - **Antigravity Cloud CLI**: Complex architectural design, refactoring, and multi-file logic using task-matched Claude models.
-  - **Claude Code CLI**: Fast component generation using 10+ free OpenCode models listed in `D:\Ashwin\Claude Code models.txt`.
-  - **GitHub Copilot CLI** (`copilot` / `gh copilot` v1.0.60+): Instant shell script generation, command line tasks, and synthesis with configurable Claude models.
-- **💻 Multi-Terminal Swarm & Skill Bootstrapping**: Spawns multiple concurrent terminal instances across Antigravity Cloud, Claude Code, and Copilot CLIs, dynamically bootstrapping every worker session with task-relevant domain skills.
-- **🌟 Elite Production Quality Standard**: Eliminates bare-minimum MVPs or basic demo placeholders in favor of rich UI/UX, responsive micro-interactions, robust state management, and resilient backend architecture.
-- **🔍 Continuous Self-Reflection Loop**: Workers execute mandatory quality reflection passes to evaluate and elevate code quality before task completion.
-- **🎯 Task-Based Model Selection First Protocol**: Mandatory protocol upon logging into any terminal session and launching CLIs to immediately select the optimal model (e.g. `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `claude-3-opus`) based on task requirements BEFORE running prompts.
-- **🔄 OpenCode Free-Tier Load Balancer**: Dynamically load-balances across free models specified in `D:\Ashwin\Claude Code models.txt` (`nvidia/nemotron-550b`, `openai/gpt-oss-120b`, `qwen3-coder`, `glm-4.5-air`, `laguna-118b`, `mimo-v2-flash`), with automatic rate-limit failover.
-- **💉 Automated Skill Context Injection**: Injects domain skills and task context directly into inner worker terminal sessions.
-- **🤖 Autonomous Inner CLI Auto-Approval**: Automatically approves all inner CLI questions, permission dialogs, tool execution confirmations (`-y`, `--yes`, `--dangerously-skip-permissions`), and interactive stdin queries without requiring user permission.
-- **🧠 Shared Memory Bus (`.hive/state.json`)**: Real-time cross-worker state management and diff reconciliation.
-- **🚀 Autonomous Git Synchronization & Main Release**: Automatically stages all file modifications and untracked files (`git add -A`), generates conventional commit messages, and commits directly to `main` (`git commit -m "..." && git push origin main`).
-
----
-
-## 🏗️ Repository Layout
-
+```text
+Claude Code
+GitHub Copilot CLI
+Antigravity
+Gemini CLI
+OpenCode
+Cline / Klein-compatible CLIs
+Freebuff-compatible CLIs
+Codex CLI
+Aider
+other installed AI CLIs
 ```
+
+The names above are discovery candidates, not guaranteed dependencies.
+
+---
+
+## Why This Version Is Different
+
+The original script could check whether a few CLIs existed and generate a fixed DAG, but it did not actually execute workers.
+
+The current harness adds:
+
+- dynamic CLI discovery from `PATH`
+- local `--version` / `--help` inspection
+- non-interactive prompt-mode detection when documented
+- configurable worker adapters
+- dynamic worker registry in `.hive/cli_registry.json`
+- actual subprocess execution of worker CLIs
+- parallel read-only worker reviews
+- captured stdout, stderr, exit code, prompt, timestamps, and command argv
+- run receipts under `.hive/runs/`
+- failover-friendly worker selection
+- master-side synthesis and final verification rules
+- no dependency on historical hard-coded model names
+- safer permission handling instead of blindly bypassing every confirmation
+
+---
+
+## Architecture
+
+```text
+User task
+   ↓
+Master coding agent
+   ↓
+Discover local AI CLIs
+   ↓
+Inspect CLI help/version
+   ↓
+Build .hive/cli_registry.json
+   ↓
+Decompose task
+   ↓
+┌────────────┬────────────┬────────────┬────────────┐
+│ Worker CLI │ Worker CLI │ Worker CLI │ Worker CLI │
+└────────────┴────────────┴────────────┴────────────┘
+   ↓             ↓             ↓             ↓
+Captured worker receipts / recommendations
+   ↓
+Master evaluates + reconciles
+   ↓
+Master integrates changes
+   ↓
+Build / test / runtime verification
+   ↓
+Final result
+```
+
+---
+
+## Repository Layout
+
+```text
 Master_Slave_Skill/
-├── SKILL.md                     # Comprehensive standalone skill specification
-├── README.md                    # Developer documentation & CLI manual
+├── SKILL.md
+├── README.md
+├── .gitignore
 └── scripts/
-    └── swarm_orchestrator.py   # Python Swarm Orchestration Engine
+    └── swarm_orchestrator.py
+```
+
+Runtime state is stored locally and ignored by Git:
+
+```text
+.hive/
+├── cli_registry.json
+├── dag.json
+├── state.json
+└── runs/
+    └── <run-id>/
 ```
 
 ---
 
-## 🚀 Usage
+## Usage
 
-### Check Environment & Dependencies
+### 1. Discover installed AI CLIs
+
 ```bash
-python scripts/swarm_orchestrator.py --check-environment
+python scripts/swarm_orchestrator.py --discover
 ```
 
-### Launch Swarm Orchestration
+Add another executable name to discovery:
+
 ```bash
-python scripts/swarm_orchestrator.py --task "Build a full-stack REST API with authentication and tests"
+python scripts/swarm_orchestrator.py --discover --extra-cli my-ai-cli
+```
+
+### 2. Inspect the worker registry
+
+```bash
+python scripts/swarm_orchestrator.py --list-workers
+```
+
+Workers whose syntax can be inferred from their local help output are marked `ready`.
+
+Workers whose invocation cannot be safely inferred are marked `needs_adapter` rather than guessed.
+
+### 3. Generate a task DAG
+
+```bash
+python scripts/swarm_orchestrator.py --task "Review this project and propose the safest fix"
+```
+
+### 4. Run the worker harness
+
+```bash
+python scripts/swarm_orchestrator.py --task "Review this project and identify bugs" --run
+```
+
+Use every runnable discovered worker:
+
+```bash
+python scripts/swarm_orchestrator.py --task "Review this project independently" --run --all-workers
+```
+
+Change the target working directory:
+
+```bash
+python scripts/swarm_orchestrator.py --task "Review this repository" --run --cwd "D:\\Projects\\Robot"
 ```
 
 ---
 
-## 📄 License
+## Custom CLI Adapters
 
-[MIT License](LICENSE)
+Some CLIs do not expose a prompt flag that can be reliably inferred from `--help`.
+
+Create a local adapter JSON:
+
+```json
+{
+  "name": "my-cli",
+  "executable": "my-cli",
+  "argv_template": ["my-cli", "--prompt", "{prompt}"],
+  "prompt_mode": "argument"
+}
+```
+
+Then register it:
+
+```bash
+python scripts/swarm_orchestrator.py --register-worker worker.json
+```
+
+For a CLI that receives prompts from stdin:
+
+```json
+{
+  "name": "my-cli",
+  "executable": "my-cli",
+  "argv_template": ["my-cli"],
+  "prompt_mode": "stdin"
+}
+```
+
+Adapters contain invocation syntax only. Do not store API keys or credentials in them.
+
+---
+
+## Master / Worker Rules
+
+The Master remains responsible for:
+
+- deciding which workers are useful
+- scoping every prompt
+- preventing overlapping concurrent file edits
+- evaluating worker answers
+- resolving contradictions
+- integrating only required changes
+- running final verification itself
+
+The recommended default is:
+
+```text
+multiple read-only worker reviews
+→ one controlled implementation path
+→ Master verification
+```
+
+This avoids several autonomous CLIs racing to edit the same files.
+
+---
+
+## Security and Permissions
+
+The harness does **not** blindly enable dangerous permission-bypass flags.
+
+Routine non-interactive operation is allowed when already authorized, but destructive actions, force pushes, credential exposure, and unrelated system changes remain under Master control.
+
+---
+
+## Requirements
+
+- Python 3.10+
+- AI CLI tools already installed and authenticated by the user
+- worker executables accessible through `PATH`, or explicit adapter paths
+
+No Python third-party dependencies are required.
+
+---
+
+## License
+
+See the repository license if present.
